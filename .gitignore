@@ -4,4 +4,4 @@
 *.pyc
 *.pid
 *.db
-#public/*
+public/*
