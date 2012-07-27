@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load url from future %}
+{% block carousel %}
+{% endblock %}
+{% block latest_news %}
+{% endblock latest_news %}
+{% block content %}
+<div class="row">
+    <div class="posts span8">
+        {% for post in posts %}
+        <div class="post">
+            <h1><i class="icon-bookmark"></i> {{ post.header }}</h1>
+            <p class="lead">
+                {{ post.lead }}
+            </p>
+            <div class="post-info">
+                <i class="icon-time"> </i> Posted {{ post.created }}{% if post.category %} in {{ post.category }}{% endif %}
+            by <strong>{{ post.user.get_full_name }}</strong>
+            </div>
+            <div class="post-body">
+                {{ post.body|safe }}
+            </div>
+            <div class="back-to-top">
+                <a href="#top"><i class="icon-hand-up"></i></a>
+            </div>
+        </div>
+        <hr>
+        {% endfor %}
+    </div>
+    <div class="sidebar span4">
+        <div class="sidebar-inside posts-overview">
+        {% if post_type == 0 %}
+            <h2>Latest news</h2>
+        {% else %}
+            <h2>Last posts</h2>
+        {% endif %}
+        <dl>
+        {% for p in posts %}
+            <dt>
+                {% if post_type == 0 %}
+                <a href="{% url 'news-detail' slug=p.slug %}">
+                {% else %}
+                <a href="{% url 'blog-detail' slug=p.slug %}">
+                {% endif %}
+                    {{ p.header }}
+                </a>
+            </dt>
+            <dd>
+                {{ p.lead }}
+            </dd>
+        {% endfor %}
+        </dl>
+    </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,33 @@
+{% load url from future %}
+    <div class="row">
+        <div class="span12 overview">
+            <h3>Latest news</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12 overview sidebar">
+            <div class="overview-inner">
+                <div class="latest-news row">
+                    {% for post in news_posts %}
+                    <div class="span4">
+                        <dl>
+                            <dt>
+                                <a href="{% url 'news-detail' slug=post.slug %}">{{ post.header }}</a>
+                            </dt>
+                            <dd>
+                                <p>
+                                    {{ post.lead }}
+                                </p>
+                            </dd>
+                        </dl>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12" style="border-top: 1px solid #000; padding-top: 15px;">
+            <button class="btn">Show all news</button>
+        </div>
+    </div>

@@ -1,0 +1,7 @@
+# ignoring files
+.DS_Store
+*~
+*.pyc
+*.pid
+{{ project_name }}.db
+public/*

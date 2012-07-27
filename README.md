@@ -1,4 +1,1 @@
-weave
-=====
-
-Project template test
+# {{ project_name|title }} Django Project
