@@ -3,5 +3,5 @@
 *~
 *.pyc
 *.pid
-{{ project_name }}.db
-public/*
+*.db
+#public/*
