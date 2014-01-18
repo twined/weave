@@ -1,0 +1,24 @@
+Django
+pillow
+django-extensions
+django-debug-toolbar
+django-templatetag-sugar
+wsgiref
+sorl-thumbnail
+django-pipeline
+django-redis
+hiredis
+redis
+south
+django-crispy-forms
+twython
+django-taggit
+gdata
+django-lockdown
+django-front
+-e git://github.com/twined/django-hiver.git#egg=django_hiver-dev
+-e git://github.com/twined/cerebrum.git#egg=cerebrum-dev
+-e git://github.com/twined/oculus.git#egg=oculus-dev
+-e git://github.com/twined/imgin.git#egg=imgin-dev
+-e git://github.com/twined/glue.git#egg=glue-dev
+-e git://github.com/twined/minions.git#egg=minions-dev

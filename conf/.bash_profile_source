@@ -1,0 +1,4 @@
+if [ $USER == {{ project_name }} ]; then
+    export WORKON_HOME=/sites/.virtualenvs
+    source /usr/local/bin/virtualenvwrapper.sh
+fi

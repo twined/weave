@@ -1,22 +1,3 @@
-Django
-PIL
-South
-#psycopg2
--e git://github.com/maraujop/django-crispy-forms.git#egg=django_crispy_forms-dev
--e git://github.com/twined/django-hiver.git#egg=django_hiver-dev
-django-debug-toolbar
-django-envelope
-django-misc
-django-honeypot
-django-pipeline
-gunicorn
--e git://github.com/frol/django-uploadify.git@e705c73e804e2e74efd4830bb2be701b48111435#egg=django_uploadify-dev
+-r base.pip
 ipdb
 ipython
-meld3
-postmarkup
-requests
-simplejson
-sorl-thumbnail
-#twython
-wsgiref

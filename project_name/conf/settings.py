@@ -1,23 +1,42 @@
-# Global settings for {{ project_name }} project.
+# ------------------------------------------------
+# core settings
+# ------------------------------------------------
+
 import os
 import sys
 
-PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-PROJECT_BASE = os.path.join(PROJECT_PATH, "..")
-PUBLIC_PATH = os.path.join(PROJECT_BASE, 'public')
-
-# use apps/ directory
-sys.path.insert(0, os.path.join(PROJECT_PATH, "apps"))
+from django.core.urlresolvers import reverse_lazy
+from django.contrib.messages import constants as message_constants
 
 
-DEBUG = False
+# ------------------------------------------------
+# utility functions
+# ------------------------------------------------
+
+base_path = lambda *x: os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..', *x))
+project_path = lambda *x: os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', *x))
+
+
+# ------------------------------------------------
+# use apps/ structure
+# ------------------------------------------------
+
+sys.path.insert(0, project_path('apps'))
+
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Admin name', 'admin@email'),
 )
 
 MANAGERS = ADMINS
+
+ALLOWED_HOSTS = ['{{ project_name }}.com', '.{{ project_name }}.clients.twined.net']
+
+FEED_TITLE = '{{ project_name }}'
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -26,7 +45,7 @@ MANAGERS = ADMINS
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Oslo'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -39,40 +58,25 @@ SITE_ID = 1
 USE_I18N = True
 
 # If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale.
+# calendars according to the current locale
 USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
-USE_TZ = True
+USE_TZ = False
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = '{{ secret_key }}'
-
-# Absolute filesystem path to the directory that will hold user-uploaded files.
-# Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = os.path.join(PUBLIC_PATH, 'media')
-
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash.
-# Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = '/media/'
+# Absolute path to the directory that holds media.
+# Example: "/home/media/media.lawrence.com/"
+MEDIA_ROOT = base_path('public', 'media')
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = os.path.join(PUBLIC_PATH, 'static')
-
-# URL prefix for static files.
-# Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+STATIC_ROOT = base_path('public', 'static')
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(PROJECT_PATH, 'static'),
+    project_path('static'),
 )
 
 # List of finder classes that know how to find static files in
@@ -82,8 +86,237 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
-# Make the messages twitter-bootstrap-friendly.
-from django.contrib.messages import constants as message_constants
+STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+
+# List of callables that know how to import templates from various sources.
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+)
+
+MIDDLEWARE_CLASSES = (
+    'django.middleware.gzip.GZipMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+)
+
+ROOT_URLCONF = '{{ project_name }}.conf.urls'
+
+TEMPLATE_DIRS = (
+    project_path('templates'),
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS += (
+    'cerebrum.context_processors.admin',
+)
+
+# ------------------------------------------------
+# core cache config / redis
+# ------------------------------------------------
+
+CACHES = {
+    'default': {
+        'BACKEND': 'redis_cache.cache.RedisCache',
+        'LOCATION': 'localhost:6379:0',
+        'OPTIONS': {
+            'PARSER_CLASS': 'redis.connection.HiredisParser',
+        },
+        'KEY_PREFIX': '{{ project_name }}',
+    },
+}
+
+
+# ------------------------------------------------
+# hiver cache
+# ------------------------------------------------
+
+HIVER_SETTINGS = {
+    'disabled': False,
+    'cache_duration': 60 * 60 * 12,
+}
+
+LOGIN_REDIRECT_URL = reverse_lazy('admin:dashboard')
+LOGIN_URL = '/admin/login/'
+LOGOUT_URL = '/admin/logout/'
+
+
+# ------------------------------------------------
+# sorl thumbnails
+# ------------------------------------------------
+
+THUMBNAIL_DEBUG = DEBUG
+THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
+
+# ------------------------------------------------
+# debug toolbar
+# ------------------------------------------------
+
+DEBUG_TOOLBAR_CONFIG = {
+    'INTERCEPT_REDIRECTS': False,
+}
+
+
+# ------------------------------------------------
+# crispy forms
+# ------------------------------------------------
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+CRISPY_FAIL_SILENTLY = not DEBUG
+
+# ------------------------------------------------
+# django-front
+# ------------------------------------------------
+
+DJANGO_FRONT_EDITOR_OPTIONS = {
+    'customConfig': '/static/js/ckeditor-config.js',
+}
+
+# ------------------------------------------------
+# imgin config
+# ------------------------------------------------
+
+IMGIN_CONFIG = {
+    'base': {},
+    'postimage': {
+        'allowed_exts': [".jpg", ".png", ".jpeg",
+                         ".JPG", ".PNG", ".JPEG"],
+        'upload_dir': os.path.join('images', 'posts'),
+        'size_limit': 10240000,
+        'size_map': {
+            'l': {
+                'landscape': '700',
+                'portrait': '700',
+                'dir': 'l',
+                'class_name': 'large',
+                'crop': '',
+                'quality': 90,
+                'format': 'JPEG',
+            },
+            'm': {
+                'landscape': '310',
+                'portrait': '310',
+                'dir': 'm',
+                'class_name': 'medium',
+                'crop': '',
+                'quality': 90,
+                'format': 'JPEG',
+            },
+            's': {
+                'landscape': '200',
+                'portrait': '200',
+                'dir': 's',
+                'class_name': 'small',
+                'crop': '',
+                'quality': 90,
+                'format': 'JPEG',
+            },
+            't': {
+                'landscape': '140x140',
+                'portrait': '140x140',
+                'dir': 't',
+                'class_name': 'thumb',
+                'crop': 'center',
+                'quality': 90,
+                'format': 'JPEG',
+            },
+        },
+    },
+    'portfolio': {
+        'allowed_exts': [".jpg", ".png", ".jpeg",
+                         ".JPG", ".PNG", ".JPEG"],
+        'belongs_to': 'ImageSeries',
+        'upload_dir': os.path.join('images', 'portfolio'),
+        'size_limit': 5000000,
+        'size_map': {
+            'l': {
+                'landscape': '940',
+                'portrait': '880',
+                'dir': 'l',
+                'class_name': 'large',
+                'crop': '',
+                'quality': 90,
+                'format': 'JPEG',
+            },
+            'm': {
+                'landscape': '310',
+                'portrait': '310',
+                'dir': 'm',
+                'class_name': 'medium',
+                'crop': '',
+                'quality': 90,
+                'format': 'JPEG',
+            },
+            's': {
+                'landscape': '235',
+                'portrait': '235',
+                'dir': 's',
+                'class_name': 'small',
+                'crop': '',
+                'quality': 90,
+                'format': 'JPEG',
+            },
+            't': {
+                'landscape': '140x140',
+                'portrait': '140x140',
+                'dir': 't',
+                'class_name': 'thumb',
+                'crop': 'center',
+                'quality': 90,
+                'format': 'JPEG',
+            },
+        },
+    },
+}
+
+# ------------------------------------------------
+# pipeline assets configuration
+# ------------------------------------------------
+
+PIPELINE = not DEBUG
+PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.yuglify.YuglifyCompressor'
+PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.yuglify.YuglifyCompressor'
+STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+PIPELINE_CSS = {
+    'app': {
+        'source_filenames': (
+            'css/bootstrap.css',
+            'css/application.css',
+        ),
+        'output_filename': 'css/app.css',
+        'extra_context': {
+            'media': 'screen,projection',
+        },
+    }
+}
+
+PIPELINE_YUI_BINARY = '/usr/bin/yui-compressor'
+PIPELINE_JS = {
+    'app': {
+        'source_filenames': (
+            'js/libs/bootstrap/bootstrap.js',
+            'js/libs/prefixfree/prefixfree.min.js',
+            'js/{{ project_name }}.js',
+        ),
+        'output_filename': 'js/app.js',
+    }
+}
+
+
+# ------------------------------------------------
+# django messages classes
+# ------------------------------------------------
 
 MESSAGE_TAGS = {
     message_constants.DEBUG: 'alert-debug',
@@ -93,147 +326,27 @@ MESSAGE_TAGS = {
     message_constants.ERROR: 'alert-error',
 }
 
-# cache config
-CACHES = {
-    'default': {
-        'BACKEND': 'redis_cache.RedisCache',
-        'LOCATION': 'localhost:6379',
-        'OPTIONS': {
-            'DB': 'CHANGE_ME',
-            'PARSER_CLASS': 'redis.connection.HiredisParser',
-        },
-        'KEY_PREFIX': '{{ project_name }}',
-    },
-}
 
-from django.core.urlresolvers import reverse_lazy
+# ------------------------------------------------
+# test settings
+# ------------------------------------------------
 
-LOGIN_REDIRECT_URL = reverse_lazy('admin:dashboard')
-LOGIN_URL = '/admin/login/'
-LOGOUT_URL = '/admin/logout/'
-
-# sorl thumbnails
-THUMBNAIL_DEBUG = DEBUG
-THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
-
-# Crispy forms config
-CRISPY_TEMPLATE_PACK = 'bootstrap'
-CRISPY_FAIL_SILENTLY = not DEBUG
-
-# Pipeline config
-STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
-
-PIPELINE_CSS = {
-    'app': {
-        'source_filenames': (
-          'css/{{ project_name }}.css',
-          'css/{{ project_name }}-responsive.css',
-          'css/lightbox.css',
-        ),
-        'output_filename': 'css/app.css',
-        'extra_context': {
-            'media': 'screen,projection',
-        },
-    },
-    'admin': {
-        'source_filenames': (
-          'css/{{ project_name }}-admin.css',
-        ),
-        'output_filename': 'css/admin.css',
-        'extra_context': {
-            'media': 'screen,projection',
-        },
-    },
-}
-
-PIPELINE_JS = {
-    'app': {
-        'source_filenames': (
-            'js/libs/bootstrap/bootstrap-transition.js',
-            'js/libs/bootstrap/bootstrap-alert.js',
-            #'js/libs/bootstrap/bootstrap-modal.js',
-            #'js/libs/bootstrap/bootstrap-dropdown.js',
-            #'js/libs/bootstrap/bootstrap-scrollspy.js',
-            #'js/libs/bootstrap/bootstrap-tab.js',
-            'js/libs/bootstrap/bootstrap-tooltip.js',
-            'js/libs/bootstrap/bootstrap-popover.js',
-            #'js/libs/bootstrap/bootstrap-button.js',
-            #'js/libs/bootstrap/bootstrap-collapse.js',
-            'js/libs/bootstrap/bootstrap-carousel.js',
-            #'js/libs/bootstrap/bootstrap-typeahead.js',
-            'js/libs/waypoints/waypoints.min.js',
-            'js/libs/lightbox/lightbox.js',
-            'js/{{ project_name }}.js',
-        ),
-        'output_filename': 'js/app.js',
-    },
-    'admin': {
-        'source_filenames': (
-            'js/libs/jquery/jquery.js',
-            'js/libs/jquery/jquery.slugit.js',
-            'js/libs/jquery/jquery.debounce-1.0.5.js'
-            'js/libs/bootstrap/bootstrap-transition.js',
-            'js/libs/bootstrap/bootstrap-alert.js',
-            'js/libs/bootstrap/bootstrap-modal.js',
-            'js/libs/bootstrap/bootstrap-dropdown.js',
-            'js/libs/bootstrap/bootstrap-scrollspy.js',
-            'js/libs/bootstrap/bootstrap-tab.js',
-            'js/libs/bootstrap/bootstrap-tooltip.js',
-            'js/libs/bootstrap/bootstrap-popover.js',
-            'js/libs/bootstrap/bootstrap-button.js',
-            'js/libs/bootstrap/bootstrap-collapse.js',
-            'js/libs/bootstrap/bootstrap-carousel.js',
-            'js/libs/bootstrap/bootstrap-typeahead.js',
-        ),
-        'output_filename': 'js/admin.js',
-    }
-}
-
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
-
-MIDDLEWARE_CLASSES = (
-    #'django.middleware.gzip.GZipMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
-
-ROOT_URLCONF = '{{ project_name }}.conf.urls'
-
-# Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = '{{ project_name }}.wsgi.application'
-
-TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(PROJECT_PATH, 'templates'),
-)
-
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.contrib.messages.context_processors.messages',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.request',
-)
-
-FIXTURE_DIRS = (
-    os.path.join(PROJECT_PATH, 'fixtures'),
-)
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+NOSE_ARGS = [
+    '--with-coverage', '--cover-html',
+    '--cover-html-dir=__coverage',
+    '--cover-package=./{{ project_name }}',
+    '--cover-erase',
+    '--failed', '--stop']
 
 INTERNAL_IPS = ('127.0.0.1', '0.0.0.0', '10.0.2.2',)
 
+
+# ------------------------------------------------
+# Installed Applications
+# ------------------------------------------------
+
+# CONTRIB DJANGO APPS
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -242,25 +355,36 @@ INSTALLED_APPS = (
     'django.contrib.sitemaps',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+)
 
+# TWINED APPS
+INSTALLED_APPS += (
+    'cerebrum',
+    'imgin',
+    'minions',
+    'oculus',
+    'papermill',
+)
+
+
+# 3RD PARTY APPS
+INSTALLED_APPS += (
     'crispy_forms',
     'debug_toolbar',
+    'django_extensions',
     'pipeline',
     'sorl.thumbnail',
     'south',
-
-    'application',
-    'hiver',
-    'posts',
-    'pages',
-    'admin',
+    'taggit',
+    'lockdown',
+    'front',
 )
 
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error when DEBUG=False.
-# See http://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
+
+# ------------------------------------------------
+# Logging
+# ------------------------------------------------
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -269,27 +393,62 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugFalse'
         }
     },
+
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s '
+                      '%(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            #'formatter': 'simple'
+        },
+        'logfile': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(base_path('logs'),
+                                     'application_error.log'),
+            'formatter': 'verbose',
+        },
     },
+
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['mail_admins', 'logfile'],
             'level': 'ERROR',
             'propagate': True,
         },
+        'envelope.forms': {
+            'handlers': ['logfile'],
+            'level': 'DEBUG',
+            'propagate': True,
+        }
     }
 }
 
-# ------------
-# -- FLAVOR --
-# ------------
+try:
+    from {{ project_name }}.conf.env.base import *
+except ImportError:
+    pass
+
+# ------------------------------------------------
+# flavor
+# ------------------------------------------------
 
 FLAVOR = os.environ.get('FLAVOR', 'dev')
+SETTINGS_ENV_DOTTEDPATH = '{{ project_name }}.conf.env.'
 
 
 def override_settings(dottedpath):
@@ -302,4 +461,4 @@ def override_settings(dottedpath):
     for _k in dir(_m):
         setattr(_thismodule, _k, getattr(_m, _k))
 
-override_settings('{{ project_name }}.conf.env.' + FLAVOR)
+override_settings(SETTINGS_ENV_DOTTEDPATH + FLAVOR)
