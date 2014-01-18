@@ -1,0 +1,24 @@
+{% load url from future %}
+
+<div class="row" style="margin-top: 15px;">
+    <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+
+      <!-- Wrapper for slides -->
+      <div class="carousel-inner">
+        <div class="item active">
+            {% for img in images|slice:":6" %}
+            <div class="col-md-2 col-sm-3 col-xs-4 {% if forloop.counter > 3 %}hidden-xs {% endif%}{% if forloop.counter > 4 %}hidden-sm {% endif%}photos">
+                <a href="{{ img.url_l }}" rel="lightbox-latest"><img src="{{ img.url_t }}" class="img-responsive desaturate" /></a>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="item">
+            {% for img in images|slice:"6:" %}
+            <div class="col-md-2 col-sm-3 col-xs-4 {% if forloop.counter > 3 %}hidden-xs {% endif%}{% if forloop.counter > 4 %}hidden-sm {% endif%}photos">
+                <a href="{{ img.url_l }}" rel="lightbox-latest"><img src="{{ img.url_t }}" class="img-responsive desaturate" /></a>
+            </div>
+            {% endfor %}
+        </div>
+      </div>
+    </div>
+</div>

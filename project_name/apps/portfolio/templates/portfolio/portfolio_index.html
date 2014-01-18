@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+{% load i18n %}
+{% block title %}Galleri{% endblock title %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="section">
+            {% trans 'Galleri' %}
+        </h2>
+    </div>
+</div>
+{% for serie in image_series %}
+<div class="row">
+    <div class="col-md-12">
+        <h3>
+        {{ serie.name }}
+        </h3>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <img src="{{ serie.related_images.all.0.url_l }}" class="img-responsive" />
+    </div>
+    <div class="col-md-6">
+        {% for img in serie.related_images.all %}
+        <a href="{{ img.url_l }}" rel="lightbox-{{ serie.slug }}"><img style="padding-top:5px;" src="{{ img.url_t }}" /></a>
+        {% endfor %}
+    </div>
+</div>
+
+<hr>
+{% endfor %}
+{% endblock content %}
+

@@ -1,0 +1,274 @@
+{% extends "admin/base.html" %}
+{% load static from staticfiles %}
+{% load crispy_forms_tags %}
+{% load url from future %}
+{% block css_extra %}
+{% endblock css_extra %}
+{% block extra_js %}
+{% endblock extra_js %}
+{% block content %}
+    <style>
+    #sortable, #imagepool { list-style-type: none; margin: 0; padding: 0; width: 750px; }
+    #sortable li, #imagepool li { margin: 3px 3px 3px 0; padding: 1px; padding-bottom: 8px; float: left; width: 100px; height: 90px; font-size: 4em; text-align: center; }
+    </style>
+    <h3>Endre bildeserie</h3>
+    {% crispy form %}
+
+    <hr>
+    <ul>
+        <li>
+            Dra bildene i rekkefølgen du vil de skal vises.
+        </li>
+        <li>
+            Dobbeltklikk for å sette tittel/info.
+        </li>
+        <li>
+            Gråe bilder vises ikke i oversikten, men kun i serie.
+        </li>
+    </ul>
+    <hr>
+
+    <div class="clearfix">
+        <ul id="sortable">
+        {% for image in image_series.related_images.all %}
+        <li id="image-{{ image.pk }}" data-id="{{ image.pk }}">
+            <img class="portfolioimage{% if image.hidden_in_index %} marked-hidden{% endif %}" src="{{ image.url_t }}" data-id="{{ image.pk }}" data-title="{{ image.title|default_if_none:"" }}" data-credits="{{ image.credits|default_if_none:"" }}" />
+        </li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div id="edit-image" class="well clearfix" style="margin-top: 15px; display:none;">
+        <div class="row">
+            <div class="span9">
+                <h2>Endre bildeinformasjon</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="span2">
+                <img src="" />
+            </div>
+            <div class="span6">
+                <label for="image_title">Tittel:</label>
+                <input type="text" id="image_title" name="image_title" />
+                <label for="image_credits">Info:</label>
+                <input type="text" id="image_credits" name="image_credits" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="span9">
+                <hr>
+                <button class="btn" id="store-info">Lagre info</button>
+            </div>
+        </div>
+
+    </div>
+    <div style="margin-top: 10px;">
+        <button class="btn btn-success" id="store-order">Lagre rekkefølge</button>
+
+        <button class="btn disabled" id="hide-images">Skjul/vis bilder i oversikten</button>
+        <button class="btn disabled" id="delete-images">Slett valgte bilder</button>
+    </div>
+    <style>
+        .marked-hidden {
+            opacity: 0.3;
+        }
+    </style>
+    <script>
+        $(function() {
+            $('#id_name').slugIt({
+                output: '#id_slug',
+                map: { 'æ': 'ae', 'ø': 'oe', 'å': 'aa' },
+                space: '-'
+            });
+            $("#sortable").sortable({
+                change: function( event, ui ) {
+                    $("#store-order").removeClass('btn-success').addClass('btn-warning');
+                }
+            });
+            $("#sortable").disableSelection();
+            $.ajaxSetup({
+                 beforeSend: function(xhr, settings) {
+                     function getCookie(name) {
+                         var cookieValue = null;
+                         if (document.cookie && document.cookie != '') {
+                             var cookies = document.cookie.split(';');
+                             for (var i = 0; i < cookies.length; i++) {
+                                 var cookie = jQuery.trim(cookies[i]);
+                                 // Does this cookie string begin with the name we want?
+                             if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                 break;
+                             }
+                         }
+                     }
+                     return cookieValue;
+                     }
+                     if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                         // Only send the token to relative URLs i.e. locally.
+                         xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                     }
+                 }
+            });
+            function checkButtons() {
+                if ($('.selected').length) {
+                    $('#hide-images')
+                        .removeClass('disabled');
+                    $('#show-images')
+                        .removeClass('disabled');
+                    $('#delete-images')
+                        .addClass('btn-error')
+                        .removeClass('disabled');
+                } else {
+                    $('#show-images')
+                        .addClass('disabled');
+                    $('#hide-images')
+                        .addClass('disabled');
+                    $('#delete-images')
+                        .addClass('disabled')
+                        .removeClass('btn-error');
+                }
+            }
+
+            $(document).on("click", ".portfolioimage", function(e) {
+                $(this).toggleClass('selected');
+                checkButtons();
+            });
+
+            $(document).on("dblclick", ".portfolioimage", function(e) {
+                $('#edit-image').slideDown();
+                $('#edit-image img').attr('src', $(this).attr('src'));
+                $('#store-info').attr('data-id', $(this).attr('data-id'));
+                $('#image_title').val($(this).attr('data-title'));
+                $('#image_credits').val($(this).attr('data-credits'));
+            });
+
+            $(document).on("click", "#hide-images", function (e) {
+                var ids = $('.selected').map(function(){
+                    return $(this).attr('data-id');
+                }).toArray().join(',');
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'toggle-hidden/',
+                    data: 'ids=' + ids,
+                    success: function(data) {
+                        if (data.status == 200) {
+                            console.log(data);
+                            var idArray = data.ids;
+                            $.each(idArray, function(index, value) {
+                                $('li[data-id='+value+'] img').toggleClass('marked-hidden');
+                                $('li[data-id='+value+'] img').removeClass('selected');
+                            });
+                        }
+                        else {
+                            alert(data.error_msg);
+                        }
+                    },
+                    dataType: 'json'
+                });
+
+                e.preventDefault();
+                $('.selected').each(function() {
+
+                });
+            });
+
+            $(document).on("click", "#show-images", function (e) {
+                $('.selected').each(function() {
+                    $(this).removeClass('marked-hidden');
+                    $(this).removeClass('selected');
+                });
+            });
+
+            $(document).on("click", "#delete-images", function (e) {
+                if (!confirm('Er du sikker på at du vil slette disse bildene?')) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                var ids = $('.selected').map(function(){
+                    return $(this).attr('data-id');
+                }).toArray().join(',');
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'slett-mange/',
+                    data: 'ids=' + ids,
+                    success: function(data) {
+                        if (data.status == 200) {
+                            console.log(data);
+                            var idArray = data.ids;
+                            $.each(idArray, function(index, value) {
+                                $('li[data-id='+value+']').fadeOut(900, function () {
+                                    $(this).remove();
+                                });
+                            });
+                            $('li[data-id='+data.id+']').fadeOut(900, function () {
+                                $(this).remove();
+                            });
+                        }
+                        else {
+                            alert(data.error_msg);
+                        }
+                    },
+                    dataType: 'json'
+                });
+
+                e.preventDefault();
+
+            });
+            $("#store-order").click(function() {
+                that = this;
+                $(this).button('loading');
+                ids = $("#sortable").sortable('toArray', {attribute: 'data-id'});
+                $.ajax({
+                    type: 'POST',
+                    url: 'sorter/',
+                    data: 'ids=' + ids.join(','),
+                    success: function(data) {
+                        if (data.status == 200) {
+                            console.log(data);
+                            $(that).button('reset');
+                            $(that).addClass('btn-success');
+                        }
+                        else {
+                            alert(data.error_msg);
+                        }
+                    },
+                    dataType: 'json'
+                });
+                event.preventDefault();
+            });
+            $("#store-info").click(function() {
+                that = this;
+                $(this).button('loading');
+                f_id = $(this).attr('data-id');
+                $.ajax({
+                    type: 'POST',
+                    url: 'attrs/',
+                    data: {
+                        id: f_id,
+                        title: $('#image_title').val(),
+                        credits: $('#image_credits').val()
+                    },
+                    success: function(data) {
+                        if (data.status == 200) {
+                            console.log(data);
+                            $(that).button('reset');
+                            $(that).addClass('btn-success');
+                            $('img[data-id='+$(that).attr('data-id')+']')
+                                .attr('data-title', data.title)
+                                .attr('data-credits', data.credits);
+                        }
+                        else {
+                            alert(data.error_msg);
+                        }
+                    },
+                    dataType: 'json'
+                });
+                event.preventDefault();
+            });
+        });
+    </script>
+
+{% endblock content %}

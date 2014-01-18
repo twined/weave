@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load front_tags %}
+{% load static from staticfiles %}
+{% load i18n %}
+{% block title %}{% trans 'About' %}{% endblock title %}
+
+{% block content %}
+<div id="info">
+    <div class="row">
+        <div class="col-md-4 space-that-top">
+            <img src="" class="img-responsive" />
+        </div>
+        <div class="col-md-8" id="about">
+            <h2>{% trans 'About' %}</h2>
+{% front_edit "about/index" request.path request.LANGUAGE_CODE %}
+            about/index
+{% end_front_edit %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+{% block title %}{{ page_title|capfirst }}{% endblock title %}
+
+{% block content %}
+
+<div class="row">
+    {% if images %}
+        <div class="span12" id="loading-images">
+            loading images – please wait
+        </div>
+    {% else %}
+        <div class="span12" id="no-images">
+            No images in this category.
+        </div>
+    {% endif %}
+    <div class="portfolio span12 infinite-scrolling" id="portfolio-wrap">
+
+        {% for image in images %}
+            {% if not image.hidden_in_index %}
+                <div class="pfwrap">
+                    <a href="{{ image.get_absolute_url }}">
+                        <img class="pf" src="{{ image.url_s }}" />
+                    </a>
+                </div>
+            {% endif %}
+        {% endfor %}
+        <nav id="page_nav">
+            <a href="?page=2"></a>
+        </nav>
+    </div>
+</div>
+{% endblock content %}
+
+{% block after_js %}
+    <script type="text/javascript" charset="utf-8" src="{% static 'js/portfolio/portfolio.js' %}"></script>
+{% endblock after_js %}

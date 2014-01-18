@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static from staticfiles %}
+{% block title %}{{ image.series.name|capfirst }} - {% if image.title %}{{ image.title }}{% else %}{{ image.pk }}{% endif %}{% endblock title %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="section">
+            Galleri
+        </h2>
+    </div>
+</div>
+    <div class="row">
+        <div class="series col-lg-10 col-md-12">
+            <div class="series-main-wrap">
+                <div class="series-credits">
+                        {% if image.title %}
+                            <h3>{{ image.title }}</h3>
+                            {% if image.credits %}
+                            <p>{{ image.credits }}</p>
+                            {% endif %}
+                        {% else %}
+                            <h3>{{ image.series.name }}</h3>
+                        {% endif %}
+                </div>
+                <a href="{% url 'portfolio:view' next_image.series.slug next_image.id %}">
+                    <img class="series-main img-responsive" src="{{ image.url_l }}" />
+                </a>
+
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="series-thumbs-wrapper col-lg-10 col-md-12">
+            <div class="series-thumbs-pool">
+            {% for thumb in image_series %}
+            <!--
+            <div class="series-thumb-wrap">
+            -->
+                <a href="{{ thumb.url_l }}" rel="lightbox-{{ image.series.slug }}"><img style="padding-top:5px;" src="{{ thumb.url_t }}" class="series-thumb{% if image.id == thumb.id %} active{% endif %}" />
+                </a>
+            <!--
+            </div>
+            -->
+
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+
+
+{% endblock content %}
