@@ -40,6 +40,10 @@ ALLOWED_HOSTS = ['{{ project_name }}.com', '.{{ project_name }}.clients.twined.n
 
 FEED_TITLE = '{{ project_name }}'
 
+SOUTH_MIGRATION_MODULES = {
+    'taggit': 'taggit.south_migrations',
+}
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
