@@ -75,3 +75,12 @@ GOOGLE_ANALYTICS_LOGIN = config.get('BASE',
                                     'GOOGLE_ANALYTICS_LOGIN')
 GOOGLE_ANALYTICS_PASSWORD = config.get('BASE',
                                        'GOOGLE_ANALYTICS_PASSWORD')
+
+# -----------------------------------------------
+# email
+# -----------------------------------------------
+EMAIL_HOST = config.get('BASE', 'EMAIL_HOST')
+EMAIL_HOST_USER = config.get('BASE', 'EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config.get('BASE', 'EMAIL_HOST_PASSWORD')
+EMAIL_PORT = config.get('BASE', 'EMAIL_PORT')
+EMAIL_USE_TLS = config.get('BASE', 'EMAIL_USE_TLS')

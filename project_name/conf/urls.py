@@ -2,6 +2,11 @@ from django.conf.urls import patterns, include, url
 
 from papermill.feeds import LatestUpdatesFeed
 
+
+def bad(request):
+    """ Simulates a server error """
+    1 / 0
+
 sitemaps = {
 }
 
@@ -20,4 +25,6 @@ urlpatterns = patterns(
     url(
         r'^rss/$',
         LatestUpdatesFeed()),
+
+    url(r'^bad/$', bad),
 )

@@ -5,3 +5,6 @@
 *.pid
 *.db
 public/*
+logs/application_error.log
+secrets.cfg
+fixtures/*

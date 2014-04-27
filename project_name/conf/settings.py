@@ -32,6 +32,8 @@ ADMINS = (
     ('Admin name', 'admin@email'),
 )
 
+SERVER_EMAIL = 'app@email'
+
 MANAGERS = ADMINS
 
 ALLOWED_HOSTS = ['{{ project_name }}.com', '.{{ project_name }}.clients.twined.net']
