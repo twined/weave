@@ -9,7 +9,6 @@ django-pipeline
 django-redis
 hiredis
 redis
-south
 django-crispy-forms
 twython
 django-taggit
@@ -23,3 +22,4 @@ django-front
 -e git://github.com/twined/glue.git#egg=glue-dev
 -e git://github.com/twined/minions.git#egg=minions-dev
 -e git://github.com/twined/papermill.git#egg=papermill-dev
+-e git://github.com/twined/pageplant.git#egg=pageplant-dev
